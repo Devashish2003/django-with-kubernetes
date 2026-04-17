@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-django
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-django
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-django
+    spec:
+      containers:
+        - name: django-app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.django.port }}
+          env:
+            - name: DJANGO_SECRET_KEY
+              value: "{{ .Values.django.secretKey }}"
+            - name: DEBUG
+              value: "{{ .Values.django.debug }}"
+            - name: ENV_ALLOWED_HOSTS
+              value: "{{ .Values.django.allowedHosts }}"
+            - name: PORT
+              value: "{{ .Values.django.port }}"
+            - name: DJANGO_SUPERUSER_USERNAME
+              value: "{{ .Values.django.superuser.username }}"
+            - name: DJANGO_SUPERUSER_PASSWORD
+              value: "{{ .Values.django.superuser.password }}"
+            - name: DJANGO_SUPERUSER_EMAIL
+              value: "{{ .Values.django.superuser.email }}"
+            - name: POSTGRES_HOST
+              value: "{{ .Chart.Name }}-postgres"
+            - name: POSTGRES_PORT
+              value: "{{ .Values.postgres.port }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.postgres.database }}"
+            - name: POSTGRES_USER
+              value: "{{ .Values.postgres.username }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.postgres.password }}"
+          command: ["sh", "-c"]
+          args:
+            - "chmod +x /app/migrate.sh && /app/migrate.sh && /app/entrypoint.sh"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Chart.Name }}-postgres
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Chart.Name }}-postgres
+  template:
+    metadata:
+      labels:
+        app: {{ .Chart.Name }}-postgres
+    spec:
+      containers:
+        - name: postgres
+          image: "{{ .Values.postgres.image }}"
+          ports:
+            - containerPort: {{ .Values.postgres.port }}
+          env:
+            - name: POSTGRES_USER
+              value: "{{ .Values.postgres.username }}"
+            - name: POSTGRES_PASSWORD
+              value: "{{ .Values.postgres.password }}"
+            - name: POSTGRES_DB
+              value: "{{ .Values.postgres.database }}"

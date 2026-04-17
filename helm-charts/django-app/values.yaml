@@ -1,0 +1,53 @@
+replicaCount: 1
+
+image:
+  repository: localhost:32000/kub_dj
+  tag: latest
+  pullPolicy: IfNotPresent
+
+django:
+  port: "8020"
+  debug: "0"
+  secretKey: "fix_this_later"
+  allowedHosts: "127.0.0.1,localhost,0.0.0.0,192.168.1.110,192.168.1.15"
+  superuser:
+    username: "admin"
+    password: "mydjangopw"
+    email: "hello@hobbiate.com"
+
+postgres:
+  image: postgres:15
+  database: "dockerdc"
+  username: "myuser"
+  password: "mysecretpw"
+  host: "django-app-postgres"
+  port: "5433"
+
+service:
+  type: NodePort
+  port: 8020
+  nodePort: 32364
+
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  automount: true
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: django.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 80
+  targetMemoryUtilizationPercentage: 80
